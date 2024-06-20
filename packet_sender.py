@@ -2,15 +2,13 @@ import socket
 import argparse
 import struct
 
-def calculate_checksum(header):
-    checksum = 0
-    for i in range(0, len(header), 2):
-        word = (header[i] << 8) + (header[i + 1])
-        checksum += word
-    checksum = (checksum >> 16) + (checksum & 0xFFFF)
-    checksum += (checksum >> 16)
-    checksum = ~checksum & 0xFFFF
-    return checksum
+def calculate_checksum(data):
+    if len(data) % 2 != 0:
+        data += b'\0'
+    s = sum(struct.unpack("!%dH" % (len(data) // 2), data))
+    s = (s >> 16) + (s & 0xffff)
+    s = s + (s >> 16)
+    return ~s & 0xffff
 
 def create_ip_packet(data, src_ip, dest_ip):
     version = 4
@@ -20,7 +18,7 @@ def create_ip_packet(data, src_ip, dest_ip):
     id = 54321
     frag_off = 0
     ttl = 64
-    protocol = 6
+    protocol = socket.IPPROTO_TCP
     check = 0  # Initial checksum
     saddr = socket.inet_aton(src_ip)
     daddr = socket.inet_aton(dest_ip)
@@ -40,7 +38,7 @@ def main():
 
     args = parser.parse_args()
     server_ip = args.server
-    payload = args.payload.encode()
+    payload = args.payload.encode('utf-8')
 
     src_ip = '192.168.0.3'  # Example source IP
     packet = create_ip_packet(payload, src_ip, server_ip)
