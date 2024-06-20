@@ -17,7 +17,7 @@ def create_ip_packet(data, src_ip, dest_ip):
     tot_len = 20 + len(data)
     id = 54321
     frag_off = 0
-    ttl = 64
+    ttl = 4006
     protocol = socket.IPPROTO_TCP
     check = 0  # Initial checksum
     saddr = socket.inet_aton(src_ip)
@@ -38,7 +38,8 @@ def main():
 
     args = parser.parse_args()
     server_ip = args.server
-    payload = args.payload.encode('utf-8')
+    encrypt = args.payload.encode('utf-8')
+    payload = encrypt.hex()
 
     src_ip = '192.168.0.3'  # Example source IP
     packet = create_ip_packet(payload, src_ip, server_ip)
