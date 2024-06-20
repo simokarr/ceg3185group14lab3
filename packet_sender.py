@@ -11,23 +11,21 @@ def calculate_checksum(data):
     return ~s & 0xffff
 
 def create_ip_packet(data, src_ip, dest_ip):
-    version = 4
-    ihl = 5
-    tos = 0
+    ihl_version = 45
+    tos = 00
     tot_len = 20 + len(data)
     id = 54321
-    frag_off = 0
-    ttl = 64
-    protocol = socket.IPPROTO_TCP
+    frag_off = 4000
+    ttl = 4006
+    #protocol = socket.IPPROTO_TCP
     check = 0  # Initial checksum
     saddr = socket.inet_aton(src_ip)
     daddr = socket.inet_aton(dest_ip)
 
-    ihl_version = (version << 4) + ihl
-    header = struct.pack('!BBHHHBBH4s4s', ihl_version, tos, tot_len, id, frag_off, ttl, protocol, check, saddr, daddr)
+    header = struct.pack(ihl_version, tos, tot_len, id, frag_off, ttl, check, saddr, daddr)
 
     check = calculate_checksum(header)
-    header = struct.pack('!BBHHHBBH4s4s', ihl_version, tos, tot_len, id, frag_off, ttl, protocol, check, saddr, daddr)
+    header = struct.pack(ihl_version, tos, tot_len, id, frag_off, ttl, check, saddr, daddr)
 
     return header + data
 
@@ -38,11 +36,11 @@ def main():
 
     args = parser.parse_args()
     server_ip = args.server
-    payload = args.payload.encode('utf-8')
+    payload = args.encode('utf-8')
 
     src_ip = '192.168.0.3'  # Example source IP
     packet = create_ip_packet(payload, src_ip, server_ip)
-
+    print(packet)
     with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_RAW) as s:
         s.sendto(packet, (server_ip, 0))
 
